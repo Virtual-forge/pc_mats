@@ -1,0 +1,138 @@
+﻿@model IEnumerable<pc_mats.Models.Order>
+
+<div class="container mt-4">
+    <h2 class="text-primary fw-bold mb-4">Dashboard</h2>
+
+    <div class="card shadow-sm mb-4" style="border-radius:15px; border:none;">
+        <div class="card-header bg-white fw-bold">Sales Volume by Category</div>
+        <div class="card-body">
+            <canvas id="categoryLineChart" style="max-height: 350px;"></canvas>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover bg-white shadow-sm" style="border-radius:15px; overflow:hidden;">
+            <thead class="table-dark">
+                <tr>
+                    <th>Customer</th>
+                    <th>Address</th>
+                    <th>Items Purchased</th>
+                    <th>Total</th>
+                    <th>Method</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@order.FullName</td>
+                        <td>@order.Address</td>
+                        <td>
+                            <ul class="list-unstyled mb-0">
+                                @if (order.OrderItems != null && order.OrderItems.Any())
+                                {
+                                    @foreach (var item in order.OrderItems)
+                                    {
+                                        <li class="mb-2">
+                                            <span class="badge border text-dark fw-normal" style="background-color: #f8f9fa;">
+                                                @item.Category
+                                            </span>
+                                            <span class="fw-bold ms-1">@item.ProductName</span>
+                                            <br />
+                                            <small class="text-muted ms-1">
+                                                Qty: @item.Quantity — @item.Price MAD
+                                            </small>
+                                        </li>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">No items found</span>
+                                }
+                            </ul>
+                        </td>
+                        <td class="text-danger fw-bold">@order.TotalAmount MAD</td>
+                        <td>
+                            <span class="badge bg-info text-dark">@order.PaymentMethod</span>
+                        </td>
+                        <td>@order.OrderDate.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // 1. Convert C# Model data to JavaScript
+    const rawData = [];
+    @foreach (var order in Model)
+    {
+            foreach (var item in order.OrderItems)
+            {
+                    <text>
+                    rawData.push({
+                        date: "@order.OrderDate.ToString("yyyy-MM-dd")",
+                        qty: @item.Quantity,
+                        category: "@item.Category"
+                    });
+                    </text>
+            }
+    }
+
+    // 2. Get unique Dates (X-axis) and Categories (Lines)
+    const labels = [...new Set(rawData.map(d => d.date))].sort();
+    const uniqueCategories = [...new Set(rawData.map(d => d.category))];
+
+    // 3. Define a consistent color palette for your categories
+    const colors = {
+        'CPU': '#dc3545', 'GPU': '#0d6efd', 'RAM': '#ffc107',
+        'SSD': '#198754', 'PSU': '#6610f2', 'Accesoir': '#0dcaf0',
+        'Clavier': '#fd7e14', 'Souris': '#20c997', 'Routeur': '#6c757d'
+    };
+
+    // 4. Create a dataset for each category line
+    const datasets = uniqueCategories.map(cat => {
+        return {
+            label: cat,
+            data: labels.map(date => {
+                // Total quantity for this specific category on this specific date
+                return rawData
+                    .filter(d => d.date === date && d.category === cat)
+                    .reduce((sum, d) => sum + d.qty, 0);
+            }),
+            borderColor: colors[cat] || '#' + Math.floor(Math.random()*16777215).toString(16),
+            backgroundColor: colors[cat] ? colors[cat] + '22' : '#00000011',
+            tension: 0.3,
+            fill: false,
+            pointRadius: 4
+        };
+    });
+
+    // 5. Initialize the Chart
+    const ctx = document.getElementById('categoryLineChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Quantity Sold' },
+                    ticks: { stepSize: 1 }
+                },
+                x: { title: { display: true, text: 'Date' } }
+            }
+        }
+    });
+</script>

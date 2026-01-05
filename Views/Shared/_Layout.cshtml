@@ -1,0 +1,221 @@
+﻿@using Microsoft.AspNetCore.Http
+@using pc_mats.Extensions
+@using pc_mats.Models
+@{
+    var userName = Context.Session.GetString("UserName");
+    var userType = Context.Session.GetString("UserType");
+    var cart = Context.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+    var cartCount = cart.Sum(i => i.Quantity);
+    var cartTotal = cart.Sum(i => i.TotalPrice);
+
+    // Dynamic classes for Admin differentiation
+    var navBgClass = (userType == "Admin") ? "bg-dark" : "bg-body-tertiary";
+    var navTheme = (userType == "Admin") ? "dark" : "light";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - pc_mats</title>
+
+    <link rel="stylesheet" href="https://bootswatch.com/5/morph/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/custom.css" />
+
+    <style>
+        /* Morph theme works best with a slightly off-white background */
+        body {
+            background-color: #e6e9ef;
+        }
+
+        /* Custom Hover effect for Morph Nav Links */
+        .navbar-nav .nav-link {
+            transition: all 0.2s ease;
+            border-radius: 10px;
+            margin: 0 2px;
+        }
+
+        /* Standard Neumorphic hover for light mode */
+        [data-bs-theme="light"] .navbar-nav .nav-link:hover {
+            background: #e6e9ef;
+            box-shadow: inset 6px 6px 12px #c8c9ce, inset -6px -6px 12px #ffffff;
+            color: var(--bs-primary) !important;
+        }
+
+        /* Simple highlight hover for admin dark mode */
+        [data-bs-theme="dark"] .navbar-nav .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel" style="border-radius: 20px 0 0 20px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold" id="cartOffcanvasLabel">Your Shopping Cart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        @if (cart.Any())
+        {
+            @foreach (var item in cart)
+            {
+                <div class="d-flex align-items-center mb-3 p-2 shadow-sm" style="border-radius:10px; background: rgba(255,255,255,0.5);">
+                    <img src="~/images/@item.ImageUrl" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" class="me-2" />
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0" style="font-size: 0.9rem;">@item.ProductName</h6>
+                        <small>@item.Quantity x @item.Price DH</small>
+                    </div>
+                    <a asp-controller="Cart" asp-action="RemoveItem" asp-route-id="@item.ProductId" class="text-danger ms-2">✖</a>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-center text-muted mt-5">Your cart is empty.</p>
+        }
+    </div>
+    <div class="offcanvas-footer p-3 border-top">
+        <div class="d-flex justify-content-between mb-3 fw-bold">
+            <span>Total:</span>
+            <span>@cartTotal DH</span>
+        </div>
+        <div class="d-grid gap-2">
+            <a asp-controller="Cart" asp-action="Checkout" class="btn btn-success shadow-sm">Checkout</a>
+            <a asp-controller="Cart" asp-action="ClearCart" class="btn btn-outline-danger btn-sm">Clear Cart</a>
+        </div>
+    </div>
+</div>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg shadow-sm @navBgClass" data-bs-theme="@navTheme">
+            <div class="container">
+                <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">pc_mats</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarColor01">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="btn btn-primary me-2 " asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <div class="btn-group hover-group" role="group" aria-label="Products Button Group">
+                                @* Left Side: The Clickable Link *@
+                                <a asp-controller="Product" asp-action="Index" class="btn btn-primary shadow-sm" style="border-top-left-radius: 12px; border-bottom-left-radius: 12px;">
+                                    Products
+                                </a>
+
+                                @* Right Side: The Dropdown Toggle *@
+                                <div class="btn-group" role="group">
+                                    <button id="btnGroupDrop1" type="button" class="btn btn-primary dropdown-toggle shadow-sm"
+                                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                            style="border-top-right-radius: 12px; border-bottom-right-radius: 12px;">
+                                    </button>
+
+                                    <div class="dropdown-menu shadow border-0" aria-labelledby="btnGroupDrop1" style="border-radius: 15px; margin-top: 5px;">
+                                        <a class="dropdown-item fw-bold text-secondary" asp-controller="Product" asp-action="Index">
+                                            All Categories
+                                        </a>
+                                        <div class="dropdown-divider"></div>
+
+                                        @foreach (var cat in Enum.GetValues(typeof(pc_mats.Models.Category)))
+                                        {
+                                            <a class="dropdown-item"
+                                               asp-controller="Product"
+                                               asp-action="Index"
+                                               asp-route-category="@cat">
+                                                @cat
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+
+                        @if (!string.IsNullOrEmpty(userName) && userType == "Admin")
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-info active" asp-controller="Users" asp-action="Index">Users</a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex align-items-center">
+                        <ul class="navbar-nav me-3">
+                            @if (!string.IsNullOrEmpty(userName))
+                            {
+                                @* --- Only show the Cart button if the user is NOT an Admin --- *@
+                                @if (Context.Session.GetString("UserType") != "Admin")
+                                {
+                                    <button class="btn btn-outline-info position-relative me-3 shadow-sm"
+                                            type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas"
+                                            style="border-radius: 12px; padding: 8px 15px;">
+                                        🛒
+                                        @if (cartCount > 0)
+                                        {
+                                            <span class="position-absolute top-100 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">
+                                                @cartCount
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="position-absolute top-100 start-100 translate-middle badge rounded-pill bg-secondary" id="cartCount">
+                                                0
+                                            </span>
+                                        }
+                                    </button>
+                                }
+
+                                <li class="nav-item dropdown">
+                                    <a class="btn btn-info dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                                        @userName
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end shadow">
+                                        <a class="dropdown-item" asp-controller="Users" asp-action="Details" asp-route-id="@Context.Session.GetInt32("UserId")">Profile</a>
+
+                                        @* --- Only show History for regular Users --- *@
+                                        @if (Context.Session.GetString("UserType") != "Admin")
+                                        {
+                                            <a class="dropdown-item" asp-controller="Cart" asp-action="MyOrders">Order History</a>
+                                        }
+
+                                        @if (Context.Session.GetString("UserType") == "Admin")
+                                        {
+                                            <a class="dropdown-item text-primary" asp-controller="Cart" asp-action="AdminOrders">Admin Dashboard</a>
+                                        }
+
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">Logout</a>
+                                    </div>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="btn btn-primary me-2" asp-controller="Account" asp-action="Login">Login</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="btn btn-secondary" asp-controller="Account" asp-action="Register">Sign Up</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container mt-5">
+        @RenderBody()
+    </div>
+
+    <footer class="text-center mt-5 mb-4 text-muted">
+        <hr class="w-25 mx-auto" />
+        <p>&copy; 2025 pc_mats</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

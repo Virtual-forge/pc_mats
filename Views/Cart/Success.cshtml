@@ -1,0 +1,24 @@
+﻿<div class="container mt-5 text-center">
+    <div class="p-5 bg-white shadow-sm" style="border-radius: 30px;">
+        <div class="display-1 text-success mb-4">✅</div>
+        <h1 class="fw-bold">Order Confirmed!</h1>
+        <p class="lead text-muted">Thank you for your purchase at pc_mats.</p>
+
+        <div class="alert alert-info d-inline-block px-5 mt-3" style="border-radius: 15px;">
+            @if (ViewBag.Method == "COD")
+            {
+                <span><strong>Payment:</strong> Cash on Delivery (Pay when you receive your items)</span>
+            }
+            else
+            {
+                <span><strong>Payment:</strong> Paid via Card (Transaction Successful)</span>
+            }
+        </div>
+
+        <div class="mt-5">
+            <a asp-controller="Product" asp-action="Index" class="btn btn-primary px-4 py-2 shadow-sm" style="border-radius: 10px;">
+                Continue Shopping
+            </a>
+        </div>
+    </div>
+</div>

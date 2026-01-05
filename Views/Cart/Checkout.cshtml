@@ -1,0 +1,73 @@
+﻿@model IEnumerable<pc_mats.Models.CartItem>
+
+<div class="container mt-5 py-4">
+    <h2 class="text-primary fw-bold mb-4">Finalize Your Order</h2>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 20px;">
+                <h4 class="mb-4">Shipping Details</h4>
+                <form asp-controller="Cart" asp-action="ProcessOrder" method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="firstName" class="form-control" style="border-radius: 10px;" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="lastName" class="form-control" style="border-radius: 10px;" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Shipping Address</label>
+                        <textarea name="address" class="form-control" rows="3" style="border-radius: 10px;" placeholder="Street, City, Zip Code" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select name="paymentMethod" class="form-select" style="border-radius: 10px;">
+                            <option value="COD">Cash on Delivery</option>
+                            <option value="Card">Credit/Debit Card</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 shadow mt-4" style="border-radius: 12px;">
+                        Confirm & Place Order
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 20px; background-color: #f8f9fa;">
+                <h4 class="mb-4">Order Summary</h4>
+
+                @foreach (var item in Model)
+                {
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="~/images/@item.ImageUrl" style="width: 60px; height: 60px; object-fit: cover; border-radius: 10px;" class="me-3 border">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">@item.ProductName</h6>
+                            <small class="text-muted">Qty: @item.Quantity</small>
+                        </div>
+                        <span class="fw-bold">@item.TotalPrice MAD</span>
+                    </div>
+                }
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal</span>
+                    <span>@Model.Sum(x => x.TotalPrice) MAD</span>
+                </div>
+                <div class="d-flex justify-content-between mb-4">
+                    <span class="fw-bold fs-5">Total</span>
+                    <span class="fw-bold fs-5 text-primary">@Model.Sum(x => x.TotalPrice) MAD</span>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100 shadow" style="border-radius: 12px;">
+                    Confirm & Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

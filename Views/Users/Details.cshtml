@@ -1,0 +1,21 @@
+﻿@model pc_mats.Models.User
+
+<h2>User Details</h2>
+<div>
+    <strong>Type:</strong> @Model.UserType
+</div>
+
+<div>
+    <strong>UserName:</strong> @Model.UserName
+</div>
+<div>
+    <strong>Email:</strong> @Model.Email
+</div>
+<div>
+    <strong>Password:</strong> @Model.Password
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</p>

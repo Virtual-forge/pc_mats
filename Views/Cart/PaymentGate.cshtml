@@ -1,0 +1,58 @@
+﻿<div class="container mt-5 text-center">
+    <div class="card shadow border-0 mx-auto" style="max-width: 500px; border-radius: 20px;">
+        <div class="card-body p-5">
+            <h3 class="mb-4 text-primary fw-bold">Secure Payment</h3>
+            <form asp-controller="Cart" asp-action="ConfirmCardPayment" method="post" id="paymentForm">
+
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-semibold">Card Number</label>
+                    <input type="text" id="cardNumber" class="form-control" placeholder="0000 0000 0000 0000"
+                           required maxlength="19" autocomplete="cc-number">
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-6 text-start">
+                        <label class="form-label fw-semibold">Expiry</label>
+                        <input type="text" id="expiry" class="form-control" placeholder="MM/YY"
+                               required maxlength="5">
+                    </div>
+                    <div class="col-6 text-start">
+                        <label class="form-label fw-semibold">CVV</label>
+                        <input type="password" id="cvv" class="form-control" placeholder="***"
+                               required maxlength="3">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm" style="border-radius: 12px;">
+                    Confirm Payment
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // --- Card Number Formatting (0000 0000 0000 0000) ---
+        document.getElementById('cardNumber').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, ''); // Remove all non-digits
+            let formatted = value.match(/.{1,4}/g)?.join(' ') || ''; // Add space every 4 chars
+            e.target.value = formatted.substring(0, 19); // Limit to 16 digits + 3 spaces
+        });
+
+        // --- Expiry Formatting (MM/YY) ---
+        document.getElementById('expiry').addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            } else {
+                e.target.value = value;
+            }
+        });
+
+        // --- CVV Numbers Only ---
+        document.getElementById('cvv').addEventListener('input', function (e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+    </script>
+}

@@ -1,0 +1,21 @@
+﻿@model IEnumerable<pc_mats.Models.Order>
+<div class="container mt-4">
+    <h2 class="mb-4">My Purchase History</h2>
+    @foreach (var order in Model)
+    {
+        <div class="card shadow-sm mb-3 border-0" style="border-radius:15px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <strong>Order #@order.Id</strong>
+                    <span class="text-muted">@order.OrderDate.ToShortDateString()</span>
+                </div>
+                <hr />
+                @foreach (var item in order.OrderItems)
+                {
+                    <p class="mb-1">@item.ProductName (x @item.Quantity) - @item.Price MAD</p>
+                }
+                <div class="mt-2 fw-bold text-primary">Total: @order.TotalAmount MAD</div>
+            </div>
+        </div>
+    }
+</div>

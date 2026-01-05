@@ -1,0 +1,157 @@
+﻿@model IEnumerable<pc_mats.Models.Product>
+@using Microsoft.AspNetCore.Http
+@{
+    ViewData["Title"] = "Products";
+    // Get the user type from the session
+    var userType = Context.Session.GetString("UserType");
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary fw-bold">Our Products</h2>
+
+    @* --- ADMIN ONLY: Add Product Button --- *@
+    @if (userType == "Admin")
+    {
+        <a asp-action="Create" class="btn btn-primary shadow-sm" style="border-radius: 12px;">
+            <i class="bi bi-plus-lg"></i> Add Product
+        </a>
+    }
+</div>
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <h4 class="text-muted">No products found in this category.</h4>
+        <a asp-action="Index" class="btn btn-link">Clear filters</a>
+    </div>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        @* ... your foreach loop ... *@
+    </div>
+}
+<div class="mb-5 p-3 bg-white shadow-sm" style="border-radius: 20px;">
+    <div class="d-flex align-items-center flex-wrap gap-2">
+        <span class="me-3 fw-bold text-secondary">Filter by:</span>
+
+        <a asp-action="Index"
+           class="btn @(ViewBag.SelectedCategory == null ? "btn-primary" : "btn-outline-primary") shadow-sm"
+           style="border-radius: 12px;">All</a>
+
+        @foreach (var cat in Enum.GetValues(typeof(pc_mats.Models.Category)))
+        {
+            <a asp-action="Index" asp-route-category="@cat"
+               class="btn @(ViewBag.SelectedCategory?.ToString() == cat.ToString() ? "btn-primary" : "btn-outline-primary") shadow-sm"
+               style="border-radius: 12px;">
+                @cat
+            </a>
+        }
+    </div>
+</div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0 position-relative" style="border-radius: 20px;">
+
+                @* --- OUT OF STOCK BANNER --- *@
+                @if (item.Quantity <= 0)
+                {
+                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                         style="background-color: rgba(255,255,255,0.6); z-index: 2; border-radius: 20px;">
+                        <span class="badge bg-danger fs-5 shadow-lg p-3" style="transform: rotate(-15deg); opacity: 0.9;">
+                            OUT OF STOCK
+                        </span>
+                    </div>
+                }
+
+                <h3 class="card-header bg-transparent border-0 pt-4 px-4" style="font-size: 1.2rem;">
+                    @item.ProductName
+                </h3>
+
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">@item.Category</h6>
+                </div>
+
+                <div style="height: 180px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="~/images/@item.ImageUrl"
+                             class="d-block w-100 @(item.Quantity <= 0 ? "grayscale" : "")"
+                             alt="@item.ProductName"
+                             style="object-fit: cover; height: 100%;" />
+                    }
+                    else
+                    {
+                        <div class="text-muted">No Image</div>
+                    }
+                </div>
+
+                <div class="card-body">
+                    <p class="card-text text-secondary" style="font-size: 0.9rem;">
+                        @(item.Description?.Length > 80 ? item.Description.Substring(0, 80) + "..." : item.Description)
+                    </p>
+                </div>
+
+                <ul class="list-group list-group-flush border-0 bg-dark-subtle">
+                    <li class="list-group-item bg-transparent">
+                        <strong>Price:</strong> <span class="text-primary">@item.Price MAD</span>
+                    </li>
+                    <li class="list-group-item bg-transparent">
+                        <strong>Stock:</strong>
+                        <span class="@(item.Quantity <= 0 ? "text-danger fw-bold" : "")">
+                            @(item.Quantity <= 0 ? "Sold Out" : item.Quantity + " units")
+                        </span>
+                    </li>
+                </ul>
+
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Context.Session.GetString("UserName")))
+                    {
+                        <div class="d-grid gap-2 mb-3">
+                            @* Disable buttons if Quantity is 0 *@
+                            @if (item.Quantity > 0)
+                            {
+                                <a asp-controller="Cart" asp-action="BuyNow" asp-route-id="@item.Id"
+                                   class="btn btn-primary btn-sm shadow-sm" style="border-radius: 8px;">
+                                    Buy Now
+                                </a>
+
+                                <a asp-controller="Cart" asp-action="AddToCart" asp-route-id="@item.Id"
+                                   class="btn btn-outline-primary btn-sm shadow-sm" style="border-radius: 8px;">
+                                    Add to Cart
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary btn-sm disabled" style="border-radius: 8px;">
+                                    Out of Stock
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-grid gap-2 mb-3">
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary btn-sm shadow-sm" style="border-radius: 8px;">
+                                Login to Buy
+                            </a>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info text-dark-emphasis shadow-sm" style="border-radius: 8px;">View Details</a>
+
+                        @if (userType == "Admin")
+                        {
+                            <div class="btn-group">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" style="border-radius: 8px; margin-right: 6px">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" style="border-radius: 8px;">Del</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

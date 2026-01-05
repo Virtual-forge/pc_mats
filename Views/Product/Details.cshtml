@@ -1,0 +1,16 @@
+﻿@model pc_mats.Models.Product
+
+<h2>Product Details</h2>
+
+<div class="card p-3">
+    <h4>@Model.ProductName</h4>
+    <img src="~/images/@Model.ImageUrl"
+         alt="@Model.ProductName"
+         class="img-fluid" />
+    <p>Category: @Model.Category</p>
+    <p>Description: @Model.Description</p>
+    <p>Price: @Model.Price</p>
+    <p>Quantity: @Model.Quantity</p>
+</div>
+
+<a asp-action="Index" class="btn btn-secondary mt-3">Back</a>

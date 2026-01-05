@@ -1,0 +1,43 @@
+﻿<style>
+    .fade-in-down {
+        animation: fadeInDown 1.2s ease-out forwards;
+    }
+
+    /* Use @@ to escape the Razor engine in .cshtml files */
+    @@keyframes fadeInDown {
+        0% {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container mt-5">
+    @if (!string.IsNullOrEmpty(ViewBag.UserName))
+    {
+        <div class="alert alert-success text-center">
+            Welcome back, @ViewBag.UserName!
+        </div>
+    }
+
+    <div class="row align-items-center fade-in-down">
+        <div class="col-md-5 mb-4 mb-md-0">
+            <img src="~/images/1.png"
+                 alt="PC Components Collection"
+                 class="img-fluid rounded shadow-sm"
+                 style="max-height: 400px; width: auto;" />
+        </div>
+
+        <div class="col-md-7 text-md-start text-center">
+            <p class="lead mb-4">Your one-stop shop for PC components and products.</p>
+            <a class="btn btn-primary btn-lg" asp-controller="Product" asp-action="Index">
+                View Products
+            </a>
+        </div>
+    </div>
+</div>
